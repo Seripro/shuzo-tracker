@@ -164,9 +164,7 @@ export async function getTemperatureRanking(
     const yesterdayMax = maxTemps[0] ?? null;
     const todayMax = maxTemps[1] ?? null;
 
-    if (yesterdayMax === null || todayMax === null) {
-      return null;
-    }
+    if (yesterdayMax === null || todayMax === null) return null;
 
     return {
       name: pref.name,
@@ -174,7 +172,7 @@ export async function getTemperatureRanking(
       todayMax,
       diff: todayMax - yesterdayMax,
     };
-  }).filter((result): result is PrefectureTemp => result !== null);
+  }).filter((r): r is PrefectureTemp => r !== null);
 
   if (results.length === 0) {
     throw new Error("有効な気温データが取得できませんでした");
