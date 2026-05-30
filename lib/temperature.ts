@@ -61,6 +61,72 @@ const PREFECTURES: { name: string; lat: number; lon: number }[] = [
   { name: "沖縄県", lat: 26.21, lon: 127.68 },
 ];
 
+export type ShuzoHistory = Record<string, number>;
+
+export async function getShuzoHistoryLast30Days(): Promise<ShuzoHistory> {
+  const formatDateJst = (d: Date) =>
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
+
+  const today = new Date();
+  const startDay = new Date(today);
+  startDay.setDate(today.getDate() - 30);
+
+  const startDate = formatDateJst(startDay);
+  const endDate = formatDateJst(today);
+
+  const latitudes = PREFECTURES.map((p) => p.lat).join(",");
+  const longitudes = PREFECTURES.map((p) => p.lon).join(",");
+
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitudes}&longitude=${longitudes}&daily=temperature_2m_max&start_date=${startDate}&end_date=${endDate}&timezone=Asia%2FTokyo`;
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Open-Meteo API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+
+  const allTemps: { name: string; maxTemps: number[] }[] = PREFECTURES.map(
+    (pref, i) => {
+      const daily = Array.isArray(data) ? data[i].daily : data.daily;
+      return { name: pref.name, maxTemps: daily.temperature_2m_max };
+    },
+  );
+
+  const counts: ShuzoHistory = {};
+  for (const pref of PREFECTURES) {
+    counts[pref.name] = 0;
+  }
+
+  const numDays = allTemps[0].maxTemps.length;
+  for (let dayIdx = 1; dayIdx < numDays; dayIdx++) {
+    let maxDiff = -Infinity;
+    let maxPref = "";
+
+    for (const pref of allTemps) {
+      const prev = pref.maxTemps[dayIdx - 1];
+      const curr = pref.maxTemps[dayIdx];
+      if (prev == null || curr == null) continue;
+      const diff = curr - prev;
+      if (diff > maxDiff) {
+        maxDiff = diff;
+        maxPref = pref.name;
+      }
+    }
+
+    if (maxPref) {
+      counts[maxPref]++;
+    }
+  }
+
+  return counts;
+}
+
 export async function getTemperatureRanking(
   targetDate?: string,
 ): Promise<TemperatureResult> {

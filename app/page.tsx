@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import type { TemperatureResult } from "@/lib/temperature";
 
 function formatDate(d: Date): string {
@@ -35,8 +36,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 flex-col min-h-screen relative">
-      {/* 日付セレクター */}
-      <div className="absolute top-4 left-0 right-0 z-10 flex justify-center">
+      {/* 日付セレクター & ナビゲーション */}
+      <div className="absolute top-4 left-0 right-0 z-10 flex items-center justify-center gap-3">
         <input
           type="date"
           value={date}
@@ -44,6 +45,12 @@ export default function Home() {
           onChange={(e) => setDate(e.target.value)}
           className="rounded-full bg-white/90 backdrop-blur px-4 py-2 text-sm font-medium text-gray-800 shadow-lg border border-gray-200 cursor-pointer"
         />
+        <Link
+          href="/history"
+          className="rounded-full bg-white/90 backdrop-blur px-4 py-2 text-sm font-medium text-gray-800 shadow-lg border border-gray-200 hover:bg-white transition-colors"
+        >
+          🗾 出没マップ
+        </Link>
       </div>
 
       {loading && (
