@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 修造トラッカー
 
-## Getting Started
+松岡修造の移動経路を気温差から特定するアプリです。
 
-First, run the development server:
+日本全国47都道府県の「昨日と今日の最高気温の差」を計算し、最も気温が上がった県＝修造が来た県、最も下がった県＝修造が去った県として表示します。
+
+## 機能
+
+- **観測情報バナー** — 選択日の修造所在地を表示
+- **気温上昇/下降の2分割表示** — 前日比の温度差を表示
+- **日付選択** — カレンダーで過去の日付を選ぶとデータが切り替わる
+- **出没マップ** (`/history`) — 過去30日間で修造が出現した県を日本地図上にヒートマップ表示
+
+## 技術スタック
+
+- **フレームワーク**: Next.js 16 (App Router)
+- **言語**: TypeScript
+- **スタイリング**: Tailwind CSS 4
+- **気象データ**: [Open-Meteo API](https://open-meteo.com/)
+- **地図**: react-simple-maps + TopoJSON
+
+## セットアップ
 
 ```bash
+# 依存パッケージのインストール
+npm install --legacy-peer-deps
+
+# 開発サーバーの起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 でアクセスできます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## プロジェクト構成
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+├── page.tsx              # トップページ（日付選択 + 気温差表示）
+├── history/page.tsx      # 出没マップページ
+├── api/
+│   ├── temperature/route.ts  # 気温データAPI
+│   └── history/route.ts      # 過去30日集計API
+├── layout.tsx
+└── globals.css
+components/
+└── JapanMap.tsx          # 日本地図ヒートマップコンポーネント
+lib/
+└── temperature.ts        # Open-Meteo APIからのデータ取得・計算ロジック
+public/
+└── japan.topojson        # 日本地図TopoJSONデータ
+```
 
-## Learn More
+## API仕様
 
-To learn more about Next.js, take a look at the following resources:
+### GET /api/temperature
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+指定日の気温差ランキングを取得。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| パラメータ | 型 | 説明 |
+|---|---|---|
+| `date` | string (YYYY-MM-DD) | 対象日（省略時は今日） |
 
-## Deploy on Vercel
+### GET /api/history
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+過去30日間の県別出現回数を取得
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## デプロイ
+
+Vercelへデプロイしています
+
