@@ -61,14 +61,24 @@ const PREFECTURES: { name: string; lat: number; lon: number }[] = [
   { name: "沖縄県", lat: 26.21, lon: 127.68 },
 ];
 
-export async function getTemperatureRanking(): Promise<TemperatureResult> {
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
+export async function getTemperatureRanking(
+  targetDate?: string,
+): Promise<TemperatureResult> {
+  const formatDateJst = (d: Date) =>
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
 
-  const formatDate = (d: Date) => d.toISOString().split("T")[0];
-  const startDate = formatDate(yesterday);
-  const endDate = formatDate(today);
+  const targetDateString = targetDate ?? formatDateJst(new Date());
+  const target = new Date(`${targetDateString}T00:00:00+09:00`);
+  const previous = new Date(target);
+  previous.setDate(target.getDate() - 1);
+
+  const startDate = formatDateJst(previous);
+  const endDate = formatDateJst(target);
 
   const latitudes = PREFECTURES.map((p) => p.lat).join(",");
   const longitudes = PREFECTURES.map((p) => p.lon).join(",");
@@ -82,11 +92,15 @@ export async function getTemperatureRanking(): Promise<TemperatureResult> {
 
   const data = await res.json();
 
-  const results: PrefectureTemp[] = PREFECTURES.map((pref, i) => {
+  const results = PREFECTURES.map((pref, i): PrefectureTemp | null => {
     const daily = Array.isArray(data) ? data[i].daily : data.daily;
     const maxTemps: number[] = daily.temperature_2m_max;
-    const yesterdayMax = maxTemps[0];
-    const todayMax = maxTemps[1];
+    const yesterdayMax = maxTemps[0] ?? null;
+    const todayMax = maxTemps[1] ?? null;
+
+    if (yesterdayMax === null || todayMax === null) {
+      return null;
+    }
 
     return {
       name: pref.name,
@@ -94,7 +108,11 @@ export async function getTemperatureRanking(): Promise<TemperatureResult> {
       todayMax,
       diff: todayMax - yesterdayMax,
     };
-  });
+  }).filter((result): result is PrefectureTemp => result !== null);
+
+  if (results.length === 0) {
+    throw new Error("有効な気温データが取得できませんでした");
+  }
 
   results.sort((a, b) => b.diff - a.diff);
 
