@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
+import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 
 type Props = {
   data: Record<string, number>;
@@ -14,234 +15,54 @@ function getColor(count: number): string {
   return "#ef4444";
 }
 
-type PrefectureData = {
-  name: string;
-  path: string;
-};
-
-const prefectures: PrefectureData[] = [
-  // 北海道
-  {
-    name: "北海道",
-    path: "M 680 80 L 720 60 L 780 50 L 830 55 L 870 70 L 890 100 L 880 130 L 860 150 L 830 160 L 800 170 L 770 180 L 740 190 L 710 185 L 690 170 L 670 150 L 660 130 L 665 100 Z",
-  },
-  // 東北
-  {
-    name: "青森県",
-    path: "M 680 210 L 710 200 L 740 205 L 760 210 L 770 225 L 760 240 L 740 245 L 720 240 L 700 245 L 685 235 L 680 220 Z",
-  },
-  {
-    name: "岩手県",
-    path: "M 720 245 L 740 245 L 760 240 L 770 250 L 775 270 L 770 290 L 755 300 L 735 300 L 720 290 L 715 270 L 718 255 Z",
-  },
-  {
-    name: "宮城県",
-    path: "M 715 300 L 735 300 L 755 300 L 760 315 L 755 330 L 740 335 L 720 330 L 712 320 L 710 310 Z",
-  },
-  {
-    name: "秋田県",
-    path: "M 680 245 L 700 245 L 720 245 L 718 255 L 715 270 L 720 290 L 715 300 L 710 295 L 695 285 L 685 270 L 680 255 Z",
-  },
-  {
-    name: "山形県",
-    path: "M 685 285 L 695 285 L 710 295 L 715 300 L 712 320 L 705 330 L 690 330 L 680 320 L 678 305 L 680 295 Z",
-  },
-  {
-    name: "福島県",
-    path: "M 680 330 L 690 330 L 705 330 L 720 330 L 740 335 L 745 350 L 740 365 L 720 370 L 700 370 L 680 365 L 675 350 L 676 340 Z",
-  },
-  // 関東
-  {
-    name: "茨城県",
-    path: "M 720 370 L 740 365 L 750 375 L 755 390 L 750 405 L 740 410 L 725 408 L 718 395 L 717 380 Z",
-  },
-  {
-    name: "栃木県",
-    path: "M 700 370 L 720 370 L 717 380 L 718 395 L 710 400 L 695 398 L 690 385 L 692 375 Z",
-  },
-  {
-    name: "群馬県",
-    path: "M 675 365 L 692 375 L 690 385 L 695 398 L 685 405 L 670 400 L 660 390 L 658 378 L 665 370 Z",
-  },
-  {
-    name: "埼玉県",
-    path: "M 670 400 L 685 405 L 695 398 L 710 400 L 712 412 L 705 420 L 690 422 L 675 418 L 668 410 Z",
-  },
-  {
-    name: "千葉県",
-    path: "M 725 408 L 740 410 L 750 405 L 755 420 L 752 440 L 745 455 L 730 455 L 720 445 L 718 430 L 720 418 Z",
-  },
-  {
-    name: "東京都",
-    path: "M 690 422 L 705 420 L 712 412 L 720 418 L 718 430 L 710 435 L 698 433 L 690 430 Z",
-  },
-  {
-    name: "神奈川県",
-    path: "M 690 430 L 698 433 L 710 435 L 718 430 L 720 445 L 715 455 L 700 458 L 688 450 L 685 440 Z",
-  },
-  // 中部
-  {
-    name: "新潟県",
-    path: "M 630 310 L 650 305 L 670 320 L 680 330 L 676 340 L 675 365 L 665 370 L 650 365 L 635 355 L 625 340 L 622 325 Z",
-  },
-  {
-    name: "富山県",
-    path: "M 590 365 L 610 360 L 625 365 L 635 375 L 630 388 L 615 392 L 600 388 L 592 378 Z",
-  },
-  {
-    name: "石川県",
-    path: "M 575 340 L 585 335 L 595 345 L 592 360 L 590 365 L 592 378 L 585 390 L 575 385 L 570 370 L 572 355 Z",
-  },
-  {
-    name: "福井県",
-    path: "M 560 385 L 575 385 L 585 390 L 590 400 L 585 412 L 575 418 L 562 415 L 555 405 L 555 395 Z",
-  },
-  {
-    name: "山梨県",
-    path: "M 658 410 L 668 410 L 675 418 L 678 430 L 672 440 L 660 442 L 650 435 L 650 422 Z",
-  },
-  {
-    name: "長野県",
-    path: "M 620 365 L 635 355 L 650 365 L 658 378 L 660 390 L 658 410 L 650 422 L 640 425 L 625 420 L 615 408 L 612 392 L 615 375 Z",
-  },
-  {
-    name: "岐阜県",
-    path: "M 585 390 L 600 388 L 615 392 L 612 408 L 615 420 L 610 432 L 598 435 L 585 430 L 578 420 L 575 418 L 580 400 Z",
-  },
-  {
-    name: "静岡県",
-    path: "M 640 440 L 650 435 L 660 442 L 672 440 L 678 430 L 685 440 L 688 450 L 700 458 L 695 468 L 680 475 L 660 472 L 645 465 L 638 455 Z",
-  },
-  {
-    name: "愛知県",
-    path: "M 598 435 L 610 432 L 625 435 L 635 445 L 640 458 L 635 470 L 620 472 L 608 465 L 600 455 L 595 445 Z",
-  },
-  {
-    name: "三重県",
-    path: "M 575 445 L 585 440 L 595 445 L 600 455 L 608 465 L 610 478 L 605 492 L 595 500 L 582 495 L 575 483 L 572 468 L 573 455 Z",
-  },
-  // 近畿
-  {
-    name: "滋賀県",
-    path: "M 560 415 L 572 418 L 578 430 L 575 445 L 568 450 L 558 448 L 552 438 L 553 425 Z",
-  },
-  {
-    name: "京都府",
-    path: "M 530 395 L 545 390 L 555 400 L 560 415 L 553 425 L 552 438 L 545 445 L 533 442 L 525 430 L 522 415 L 525 405 Z",
-  },
-  {
-    name: "大阪府",
-    path: "M 540 450 L 552 448 L 558 448 L 562 458 L 558 470 L 548 475 L 538 472 L 534 462 Z",
-  },
-  {
-    name: "兵庫県",
-    path: "M 500 400 L 515 395 L 530 395 L 525 405 L 522 415 L 525 430 L 533 442 L 540 450 L 534 462 L 525 468 L 512 465 L 500 455 L 495 440 L 493 420 L 495 408 Z",
-  },
-  {
-    name: "奈良県",
-    path: "M 548 475 L 558 470 L 568 468 L 575 483 L 572 495 L 565 502 L 555 500 L 548 490 L 545 480 Z",
-  },
-  {
-    name: "和歌山県",
-    path: "M 535 478 L 545 480 L 548 490 L 555 500 L 565 502 L 572 495 L 575 510 L 568 525 L 555 530 L 540 525 L 530 515 L 528 500 L 530 488 Z",
-  },
-  // 中国
-  {
-    name: "鳥取県",
-    path: "M 470 400 L 490 395 L 500 400 L 498 412 L 490 418 L 475 418 L 468 412 Z",
-  },
-  {
-    name: "島根県",
-    path: "M 430 395 L 450 390 L 470 395 L 470 400 L 468 412 L 462 420 L 445 422 L 430 418 L 425 408 Z",
-  },
-  {
-    name: "岡山県",
-    path: "M 475 418 L 490 418 L 498 412 L 500 420 L 498 435 L 490 442 L 478 442 L 470 435 L 468 425 Z",
-  },
-  {
-    name: "広島県",
-    path: "M 440 422 L 455 418 L 468 425 L 470 435 L 478 442 L 475 455 L 462 458 L 448 455 L 438 445 L 435 432 Z",
-  },
-  {
-    name: "山口県",
-    path: "M 400 420 L 415 415 L 430 418 L 440 422 L 438 435 L 438 445 L 430 455 L 418 458 L 405 455 L 398 445 L 395 432 Z",
-  },
-  // 四国
-  {
-    name: "徳島県",
-    path: "M 505 470 L 520 468 L 530 472 L 535 482 L 530 492 L 518 495 L 508 490 L 503 480 Z",
-  },
-  {
-    name: "香川県",
-    path: "M 480 452 L 495 448 L 510 450 L 515 458 L 510 468 L 498 470 L 485 468 L 478 460 Z",
-  },
-  {
-    name: "愛媛県",
-    path: "M 440 468 L 455 462 L 470 465 L 480 472 L 485 485 L 480 498 L 468 502 L 455 498 L 445 490 L 438 478 Z",
-  },
-  {
-    name: "高知県",
-    path: "M 455 498 L 468 502 L 480 498 L 485 485 L 498 480 L 508 490 L 518 495 L 530 492 L 530 505 L 522 518 L 508 525 L 490 522 L 475 518 L 460 512 L 452 505 Z",
-  },
-  // 九州
-  {
-    name: "福岡県",
-    path: "M 370 440 L 385 435 L 398 438 L 405 448 L 402 460 L 390 465 L 378 462 L 370 455 L 368 448 Z",
-  },
-  {
-    name: "佐賀県",
-    path: "M 350 455 L 365 450 L 370 455 L 378 462 L 375 472 L 362 475 L 352 470 L 348 462 Z",
-  },
-  {
-    name: "長崎県",
-    path: "M 325 465 L 340 460 L 350 465 L 352 475 L 348 488 L 340 498 L 328 500 L 318 492 L 315 480 L 320 472 Z",
-  },
-  {
-    name: "熊本県",
-    path: "M 362 475 L 375 472 L 390 475 L 398 485 L 395 500 L 388 512 L 375 515 L 362 510 L 355 498 L 356 485 Z",
-  },
-  {
-    name: "大分県",
-    path: "M 390 448 L 402 448 L 405 455 L 402 465 L 398 475 L 390 475 L 380 470 L 378 462 L 382 455 Z",
-  },
-  {
-    name: "宮崎県",
-    path: "M 388 512 L 398 505 L 408 500 L 415 510 L 418 525 L 412 540 L 400 545 L 388 540 L 382 528 L 383 518 Z",
-  },
-  {
-    name: "鹿児島県",
-    path: "M 355 520 L 368 515 L 380 518 L 388 528 L 388 540 L 400 545 L 395 558 L 382 565 L 368 562 L 355 555 L 348 542 L 350 530 Z",
-  },
-  // 沖縄
-  {
-    name: "沖縄県",
-    path: "M 280 700 L 295 695 L 310 700 L 315 712 L 310 725 L 298 730 L 285 728 L 278 718 L 276 708 Z",
-  },
-];
+const TOPO_URL = "/japan.topojson";
 
 export default function JapanMap({ data }: Props) {
+  const [tooltip, setTooltip] = useState("");
+
   return (
-    <svg
-      viewBox="0 0 1000 1000"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-full h-auto"
-    >
-      {prefectures.map((pref) => {
-        const count = data[pref.name] ?? 0;
-        const color = getColor(count);
-        return (
-          <path
-            key={pref.name}
-            d={pref.path}
-            fill={color}
-            stroke="#6b7280"
-            strokeWidth="1"
-            className="transition-colors hover:opacity-80 cursor-pointer"
-          >
-            <title>{`${pref.name}: ${count}`}</title>
-          </path>
-        );
-      })}
-    </svg>
+    <div className="relative">
+      {tooltip && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-black/80 text-white text-sm px-3 py-1 rounded pointer-events-none z-10">
+          {tooltip}
+        </div>
+      )}
+      <ComposableMap
+        projection="geoMercator"
+        projectionConfig={{
+          scale: 1800,
+          center: [137, 38],
+        }}
+        width={800}
+        height={900}
+        style={{ width: "100%", height: "auto" }}
+      >
+        <Geographies geography={TOPO_URL}>
+          {({ geographies }) =>
+            geographies.map((geo) => {
+              const name: string = geo.properties.nam_ja;
+              const count = data[name] ?? 0;
+
+              return (
+                <Geography
+                  key={geo.rsmKey}
+                  geography={geo}
+                  fill={getColor(count)}
+                  stroke="#fff"
+                  strokeWidth={0.5}
+                  onMouseEnter={() => setTooltip(`${name}: ${count}回`)}
+                  onMouseLeave={() => setTooltip("")}
+                  style={{
+                    default: { outline: "none" },
+                    hover: { outline: "none", opacity: 0.7 },
+                    pressed: { outline: "none" },
+                  }}
+                />
+              );
+            })
+          }
+        </Geographies>
+      </ComposableMap>
+    </div>
   );
 }
